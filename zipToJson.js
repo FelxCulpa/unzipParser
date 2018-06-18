@@ -16,8 +16,8 @@ wrToJsonFile.on('error', err => {
 	console.error('Error Write to JSON file!');
 })
 
-wrToJsonFile.on('end', () => {
-	console.log('Finished. Please, check out result folder');
+wrToJsonFile.on('finish', () => {
+	console.log('Finished. Please, check out the result folder');
 })
 
 yauzl.open ('data.zip', {lazyEntries: true}, (err, zipfile) => {     //open zip archive
