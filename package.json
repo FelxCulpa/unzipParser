@@ -1,0 +1,12 @@
+{
+  "name": "unzipParser",
+  "version": "1.0.0",
+  "main": "zipToJson.js",
+  "scripts": {
+    "start": "node zipToJson.js"
+  },
+  "author": "Oleh Butkov",
+  "dependencies": {
+    "yauzl": "^2.9.2"
+  }
+}
