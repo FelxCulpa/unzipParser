@@ -7,6 +7,7 @@
   },
   "author": "Oleh Butkov",
   "dependencies": {
+    "fast-csv": "^2.4.1",
     "yauzl": "^2.9.2"
   }
 }

@@ -1,13 +1,12 @@
 const yauzl = require('yauzl');
 const fs = require ('fs');
-const readline = require ('readline');
 const path = require ('path');
+const csv = require ('fast-csv');
 
 const User = require('./parseModule/user.js');
 
 const resultPath = path.join(__dirname, '/result', 'catalog.json');
 const wrToJsonFile = fs.createWriteStream(resultPath);
-
 
 let jsonArr = [];
 
@@ -23,6 +22,7 @@ wrToJsonFile.on('finish', () => {
 yauzl.open ('data.zip', {lazyEntries: true}, (err, zipfile) => {     //open zip archive
 	
 	if (err) throw err;
+
 	zipfile.readEntry();										//work with each file in archive, emit event 'entry'
 	
 	zipfile.on('entry', entry => {								
@@ -30,22 +30,18 @@ yauzl.open ('data.zip', {lazyEntries: true}, (err, zipfile) => {     //open zip 
 			
 			if (err) throw err;
 			
-			const rl = readline.createInterface({				//interface to read each line in file
-				input: readStream
+			let csvStream = csv.fromStream(readStream, {headers: true, delimiter: '|'});  //parse csv file
+			csvStream.on('data', data => {
+				let {first_name, last_name, phone,
+						 cc, amount, date} = data;
+				user = new User (first_name, last_name, phone, cc, amount, date);   //format data
+				jsonArr.push(user);
 			});
-			
-			rl.on('line', (line) => {
-				let dataArray = line.split('||');
-				dataArray = removeQuotes(dataArray);
-				if (dataArray[0].toLowerCase().trim() !== 'first_name') {
-						let [firstName, lastName, , , , phone,
-						 costCenter, amount, date] = dataArray;
-					user = new User (firstName, lastName, phone, costCenter, amount, date);   //parse data and fill in user object
-					jsonArr.push(user);
-				}
-			})
+			csvStream.on('data-invalid', () => {
+			   	console.error('Invalid row in csv file!')
+			   })
 
-			readStream.on('end', () => {						//after reading each file move to next, emit event entry
+			readStream.on('end', () => {						//after reading each file move to next, emit event 'entry'
 				zipfile.readEntry();
 			});
 			readStream.on ('error', () => {
@@ -63,6 +59,3 @@ yauzl.open ('data.zip', {lazyEntries: true}, (err, zipfile) => {     //open zip 
 	});
 })
 
-function removeQuotes (stringArr) {
-	return stringArr.map(str => str.replace(/^"(.*)"$/, '$1'))
-}
